@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0b0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BuildnBurn">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Build &amp; Burn</title>
+<style>
+  :root{
+    --bg:#0a0b0f; --panel:#14161d; --panel2:#1b1e27; --line:#262a36;
+    --ink:#eef0f5; --ink2:#a8adbb; --ink3:#6b7184;
+    --accent:#7af0c0; --accent2:#5ac8ff; --warn:#f59e0b; --bad:#ef4444;
+    --chest:#ef4444; --back:#3b82f6; --shoulders:#f59e0b; --biceps:#a855f7;
+    --triceps:#ec4899; --quads:#10b981; --hams:#14b8a6; --glutes:#f43f5e;
+    --core:#eab308; --calves:#06b6d4; --posture:#6366f1;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:radial-gradient(1200px 600px at 50% -10%, #1a1d2a 0%, #07080b 60%);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Inter","SF Pro Text","Segoe UI",sans-serif;min-height:100vh}
+  .stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px 60px}
+  .title{font-weight:600;letter-spacing:.3px;color:var(--ink);text-align:center}
+  .title small{display:block;color:var(--ink3);font-weight:400;margin-top:2px;font-size:12px}
+  .controls{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:520px}
+  .ctl{background:#1a1d28;border:1px solid var(--line);color:var(--ink2);padding:6px 11px;border-radius:999px;font:inherit;cursor:pointer;font-size:12px}
+  .ctl:hover{color:var(--ink);border-color:#3a3f51}
+  .ctl.active{background:var(--accent);color:#0a0b0f;border-color:var(--accent)}
+  .reset{background:transparent;border:1px solid var(--line);color:var(--ink3);padding:5px 10px;border-radius:6px;font:inherit;font-size:11px;cursor:pointer}
+
+  .phone{width:390px;height:830px;border-radius:48px;background:#000;padding:14px;
+    box-shadow:0 50px 100px -20px rgba(0,0,0,.7),0 30px 60px -30px rgba(0,0,0,.6),inset 0 0 0 2px #1d1f27,inset 0 0 0 3px #2a2d38;position:relative}
+  .phone::before{content:"";position:absolute;top:22px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px;z-index:10}
+  .screen{width:100%;height:100%;border-radius:36px;background:var(--bg);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .statusbar{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:14px 28px 0;color:var(--ink);font-size:14px;font-weight:600;letter-spacing:.3px}
+  .statusbar .right{display:flex;gap:5px;align-items:center}
+
+  .view{display:none;flex-direction:column;flex:1;min-height:0}
+  .view.active{display:flex}
+  .body{flex:1;overflow-y:auto;scrollbar-width:none;padding-bottom:90px}
+  .body.no-nav{padding-bottom:24px}
+  .body::-webkit-scrollbar{display:none}
+
+  .appbar{padding:8px 18px 12px;display:flex;align-items:center;gap:12px;flex:none}
+  .appbar .back{width:36px;height:36px;border-radius:50%;background:#1b1e27;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .appbar h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.2px}
+  .appbar .sub{font-size:12px;color:var(--ink3);margin-top:1px}
+
+  /* ONBOARDING — welcome */
+  .welcome{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:30px 24px 28px;text-align:center}
+  .welcome .hero-pulse{flex:1;display:flex;align-items:center;justify-content:center}
+  .pulse{position:relative;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(122,240,192,.25) 0%,transparent 70%);display:flex;align-items:center;justify-content:center}
+  .pulse::after{content:"";position:absolute;inset:30px;border-radius:50%;border:1px solid rgba(122,240,192,.3);animation:pulse 2.4s ease-out infinite}
+  .pulse::before{content:"";position:absolute;inset:50px;border-radius:50%;border:1px solid rgba(122,240,192,.4);animation:pulse 2.4s ease-out infinite .8s}
+  @keyframes pulse{0%{transform:scale(.9);opacity:.8}100%{transform:scale(1.6);opacity:0}}
+  .pulse svg{width:64px;height:64px;color:var(--accent);position:relative;z-index:2}
+  .welcome h1{font-size:30px;font-weight:700;letter-spacing:-.8px;margin:8px 0 12px;line-height:1.15}
+  .welcome p{margin:0 0 28px;color:var(--ink2);font-size:14px;line-height:1.5;padding:0 8px}
+  .badge-row{display:flex;justify-content:center;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+  .badge{font-size:10px;padding:5px 10px;border-radius:999px;background:#1a1d28;border:1px solid var(--line);color:var(--ink2);letter-spacing:.4px;text-transform:uppercase}
+
+  /* shared form bits */
+  .form-h{padding:24px 24px 6px}
+  .form-h .step{font-size:11px;color:var(--accent);letter-spacing:.6px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+  .form-h h2{font-size:24px;font-weight:700;letter-spacing:-.5px;margin:0;line-height:1.2}
+  .form-h p{margin:8px 0 0;color:var(--ink3);font-size:13px}
+  .progress{height:3px;background:#1a1d28;margin:0 24px 4px;border-radius:2px;overflow:hidden}
+  .progress i{display:block;height:100%;background:var(--accent);transition:width .35s}
+
+  .seg{display:grid;grid-template-columns:1fr 1fr;background:#0f1218;border:1px solid var(--line);border-radius:14px;padding:4px;margin:18px 24px 0}
+  .seg button{background:transparent;border:none;color:var(--ink2);padding:10px;border-radius:10px;cursor:pointer;font:inherit;font-weight:600;font-size:13px}
+  .seg button.on{background:var(--accent);color:#0a0b0f}
+
+  .num-input{margin:24px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center}
+  .num-input .label{font-size:11px;letter-spacing:.5px;color:var(--ink3);text-transform:uppercase;font-weight:600}
+  .num-display{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:14px 0 18px}
+  .num-display .v{font-size:64px;font-weight:700;letter-spacing:-2px;line-height:1;font-variant-numeric:tabular-nums}
+  .num-display .u{font-size:16px;color:var(--ink3);font-weight:500}
+  .num-input input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;background:linear-gradient(90deg,var(--accent) var(--p,50%),#1f2330 var(--p,50%));border-radius:3px;outline:none}
+  .num-input input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid #0a0b0f;box-shadow:0 4px 12px rgba(122,240,192,.5)}
+  .num-bounds{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--ink3)}
+
+  .goal-list{padding:18px 24px;display:flex;flex-direction:column;gap:10px}
+  .goal{display:flex;align-items:center;gap:14px;padding:16px;background:var(--panel);border:1.5px solid var(--line);border-radius:16px;cursor:pointer;transition:all .15s}
+  .goal:active{transform:scale(.98)}
+  .goal.on{border-color:var(--accent);background:rgba(122,240,192,.06)}
+  .goal .ic{width:46px;height:46px;border-radius:14px;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px}
+  .goal h3{margin:0;font-size:15px;font-weight:600}
+  .goal p{margin:2px 0 0;font-size:12px;color:var(--ink3);line-height:1.4}
+  .goal .check{width:22px;height:22px;border-radius:50%;border:2px solid #2a2f3d;flex:none;display:flex;align-items:center;justify-content:center}
+  .goal.on .check{border-color:var(--accent);background:var(--accent)}
+  .goal.on .check svg{display:block}
+  .goal .check svg{display:none;color:#0a0b0f}
+
+  .group-grid{padding:8px 24px 18px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .gpill{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:12px;background:var(--panel);border:1.5px solid var(--line);cursor:pointer;font-size:13px;font-weight:500}
+  .gpill.on{border-color:currentColor;background:rgba(255,255,255,.04)}
+  .gpill .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .gpill .ck{margin-left:auto;width:16px;height:16px;border-radius:50%;border:1.5px solid #2a2f3d}
+  .gpill.on .ck{background:currentColor;border-color:currentColor;position:relative}
+  .gpill.on .ck::after{content:"";position:absolute;inset:3px;border-radius:50%;background:#0a0b0f}
+
+  .footer-cta{position:absolute;bottom:0;left:0;right:0;padding:14px 20px 28px;background:linear-gradient(180deg,transparent,var(--bg) 30%);display:flex;gap:10px}
+  .btn{flex:1;padding:14px;border-radius:14px;border:none;font:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:transform .1s}
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background:var(--accent);color:#0a0b0f}
+  .btn.primary:disabled{background:#2a2f3d;color:#5b6075;cursor:not-allowed}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+
+  /* RESULTS */
+  .summary{margin:14px 18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(122,240,192,.1),rgba(90,200,255,.05));border:1px solid rgba(122,240,192,.2);border-radius:18px;display:flex;align-items:center;gap:12px}
+  .summary .ic{width:38px;height:38px;border-radius:12px;background:rgba(122,240,192,.15);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none}
+  .summary h3{margin:0;font-size:13px;font-weight:600}
+  .summary p{margin:1px 0 0;font-size:11px;color:var(--ink3)}
+  .summary .edit{font-size:11px;color:var(--accent);cursor:pointer;font-weight:600;letter-spacing:.4px}
+
+  .filter-row{padding:14px 18px 6px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .filter-row::-webkit-scrollbar{display:none}
+  .fchip{flex:none;padding:7px 13px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:12px;color:var(--ink2);cursor:pointer;font-weight:500}
+  .fchip.on{background:var(--accent);color:#0a0b0f;border-color:var(--accent)}
+
+  .ex-list{padding:10px 18px;display:flex;flex-direction:column;gap:12px}
+  .ex-row{display:flex;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px;align-items:center;cursor:pointer;transition:transform .12s}
+  .ex-row:active{transform:scale(.98)}
+  .ex-thumb{width:80px;height:80px;border-radius:12px;background:#0b0d12 center/cover no-repeat;flex:none;position:relative;overflow:hidden}
+  .ex-thumb .rk{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.7);font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
+  .ex-thumb .rk.t1{background:var(--accent);color:#0a0b0f}
+  .ex-info{flex:1;min-width:0}
+  .ex-info h4{margin:0;font-size:14px;font-weight:600;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ex-info .grp{display:inline-block;font-size:10px;padding:2px 7px;border-radius:6px;color:#0a0b0f;font-weight:600;margin-top:4px}
+  .ex-info .meta{font-size:11px;color:var(--ink3);margin-top:5px;display:flex;align-items:center;gap:8px}
+  .ex-info .meta .pubmed{color:var(--accent2);font-weight:600}
+  .save-btn{width:36px;height:36px;border-radius:50%;background:#1b1e27;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;color:var(--ink3)}
+  .save-btn.on{background:var(--accent);border-color:var(--accent);color:#0a0b0f}
+
+  /* EXERCISE DETAIL */
+  .hero-gif{height:240px;background:#0b0d12 center/cover no-repeat;position:relative}
+  .hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,15,0) 30%, rgba(10,11,15,.95))}
+  .hero-back{position:absolute;top:14px;left:14px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+  .hero-title{position:absolute;left:18px;right:18px;bottom:14px;z-index:2}
+  .hero-title h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.4px}
+  .stat-trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px}
+  .trio{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .trio .v{font-size:18px;font-weight:700}
+  .trio .l{font-size:10px;color:var(--ink3);letter-spacing:.4px;text-transform:uppercase;margin-top:2px}
+  .block{margin:0 18px 14px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}
+  .block h3{margin:0 0 8px;font-size:11px;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase;font-weight:600}
+  .block p{margin:0;font-size:13px;line-height:1.5}
+  .block p+p{margin-top:8px;color:var(--ink2);font-size:12.5px}
+  .gif-note{margin:10px 16px 0;padding:9px 11px;border-radius:9px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.32);color:var(--ink2);font-size:12px;line-height:1.45}
+  .gif-note b{color:var(--ink);font-weight:600}
+  .pubmed-card{display:flex;gap:10px;align-items:flex-start}
+  .pubmed-card .pm-ic{width:34px;height:34px;border-radius:8px;background:rgba(90,200,255,.15);color:var(--accent2);display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:11px}
+  .cta{margin:6px 18px 0;display:flex;gap:10px}
+
+  /* PROFILE / SAVED */
+  .prof-head{padding:18px;display:flex;align-items:center;gap:14px}
+  .avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#0a0b0f}
+  .prof-head h2{margin:0;font-size:18px;font-weight:700}
+  .prof-head .sub{font-size:12px;color:var(--ink3);margin-top:2px}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 18px}
+  .pstat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .pstat .v{font-size:18px;font-weight:700}
+  .pstat .l{font-size:10px;color:var(--ink3);letter-spacing:.4px;text-transform:uppercase;margin-top:2px}
+
+  .section-h{padding:6px 18px 8px;display:flex;align-items:center;justify-content:space-between}
+  .section-h h3{margin:0;font-size:14px;font-weight:600}
+  .section-h a{font-size:12px;color:var(--accent);text-decoration:none;cursor:pointer}
+
+  .empty{margin:14px 18px;padding:30px 18px;border:1.5px dashed var(--line);border-radius:18px;text-align:center;color:var(--ink3);font-size:13px}
+  .empty p{margin:0 0 12px}
+
+  .plan-card{margin:0 18px 12px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;cursor:pointer}
+  .plan-card.featured{background:linear-gradient(135deg,rgba(122,240,192,.08),rgba(90,200,255,.04));border-color:rgba(122,240,192,.3)}
+  .plan-card h4{margin:0;font-size:15px;font-weight:600}
+  .plan-card .ptags{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+  .ptag{font-size:10px;padding:3px 8px;border-radius:6px;color:#0a0b0f;font-weight:600;letter-spacing:.2px}
+  .plan-card .meta{font-size:11px;color:var(--ink3);margin-top:8px;display:flex;justify-content:space-between}
+
+  /* PLAN BUILDER */
+  .wk-head{margin:0 18px 10px;padding:12px 14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+  .wk-head h4{margin:0;font-size:15px;font-weight:600}
+  .wk-head .wsub{font-size:12px;color:var(--ink2);margin-top:3px}
+  .wk-head .wmeta{font-size:11px;color:var(--ink3);margin-top:7px}
+  .wk-sec{padding:2px 18px 6px;font-size:11px;letter-spacing:.6px;color:var(--ink3);font-weight:600}
+  .wk-row{display:flex;align-items:center;gap:10px;margin:0 18px 6px;padding:8px 10px;border-radius:12px;background:#0f1218;cursor:pointer}
+  .wk-row:active{background:#1b1e27}
+  .wk-row.pre{background:rgba(99,102,241,.10);border:1px solid rgba(99,102,241,.24)}
+  .wk-row .wn{width:19px;text-align:center;font-size:11px;color:var(--ink3);flex:none;font-weight:600}
+  .wk-row .wthumb{width:42px;height:42px;border-radius:9px;background:#0b0d12 center/cover no-repeat;flex:none}
+  .wk-row .wi{flex:1;min-width:0}
+  .wk-row .wi h5{margin:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wk-row .wi .wd{font-size:11px;color:var(--ink3);margin-top:2px}
+  .wk-row .wdose{font-size:12px;font-weight:600;color:var(--accent);flex:none;text-align:right}
+  .day-tabs{padding:10px 18px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .day-tab{flex:none;padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:12px;font-weight:600;cursor:pointer;color:var(--ink2)}
+  .day-tab.on{background:var(--accent);color:#0a0b0f;border-color:var(--accent)}
+  .day-tab.has-ex::after{content:"●";color:var(--accent);margin-left:5px;font-size:8px}
+  .day-tab.on.has-ex::after{color:#0a0b0f}
+
+  .day-empty{margin:14px 18px;padding:24px;border:1.5px dashed var(--line);border-radius:16px;text-align:center;color:var(--ink3);font-size:12px}
+  .plan-ex{margin:0 18px 8px;display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px}
+  .plan-ex .pthumb{width:46px;height:46px;border-radius:10px;background:#0b0d12 center/cover no-repeat;flex:none}
+  .plan-ex .pinfo{flex:1;min-width:0}
+  .plan-ex h5{margin:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .plan-ex .pmeta{font-size:11px;color:var(--ink3);margin-top:2px}
+  .plan-ex .rm{padding:6px 10px;background:transparent;border:1px solid var(--line);color:var(--ink3);border-radius:8px;font:inherit;font-size:11px;cursor:pointer}
+
+  .add-row{margin:6px 18px 0}
+  .add-btn{width:100%;padding:12px;border-radius:14px;background:transparent;border:1.5px dashed var(--line);color:var(--ink2);cursor:pointer;font:inherit;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px}
+  .add-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* picker modal */
+  .modal{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:30;display:none;align-items:flex-end;justify-content:center;border-radius:36px;overflow:hidden}
+  .modal.open{display:flex}
+  .sheet{width:100%;background:#14161d;border-radius:24px 24px 0 0;border-top:1px solid var(--line);padding:14px 0 28px;max-height:80%;display:flex;flex-direction:column}
+  .sheet-h{padding:8px 18px 14px;display:flex;align-items:center;justify-content:space-between}
+  .sheet-h h3{margin:0;font-size:16px;font-weight:600}
+  .sheet-h .x{cursor:pointer;color:var(--ink3);font-size:22px;line-height:1}
+  .sheet-body{flex:1;overflow-y:auto;padding:0 18px;scrollbar-width:none}
+  .sheet-body::-webkit-scrollbar{display:none}
+  .pick-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;cursor:pointer;background:#0f1218;margin-bottom:6px}
+  .pick-row:active{background:#1b1e27}
+  .pick-row .pthumb{width:48px;height:48px;border-radius:10px;background:#0b0d12 center/cover no-repeat;flex:none}
+  .pick-row .pinfo h5{margin:0;font-size:13px;font-weight:600}
+  .pick-row .pinfo .gm{font-size:11px;color:var(--ink3);margin-top:2px}
+
+  /* toast */
+  .toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:#1b1e27;border:1px solid var(--line);color:var(--ink);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;z-index:40;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .ic{color:var(--accent)}
+
+  /* nav */
+  .nav{position:absolute;bottom:0;left:0;right:0;background:rgba(20,22,29,.92);backdrop-filter:blur(20px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:10px 0 22px;z-index:5}
+  .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);cursor:pointer;font-size:10px;font-weight:500;letter-spacing:.3px}
+  .nav-item.active{color:var(--accent)}
+  .nav-item svg{width:22px;height:22px}
+
+  @media (max-width:440px){.phone{transform:scale(.92);transform-origin:top center}}
+
+  /* PWA / phone full-bleed: when installed or on a real phone, drop the desktop "phone frame" chrome */
+  @media (display-mode:standalone), (max-width:520px){
+    html,body{background:var(--bg);height:100%;overflow:hidden}
+    .stage{padding:0;gap:0;min-height:100vh;min-height:100dvh}
+    /* Hide the desktop chrome, keep the app. The old rule listed `.stage > div:last-child`,
+       which matches .phone itself (it is the last child), so this blanked the whole app on
+       any screen under 520px and in standalone. Target everything except the phone instead. */
+    .stage > :not(.phone){display:none}
+    /* transform:none undoes the .92 preview scale from the max-width:440px rule above,
+       which would otherwise leave dead space at the bottom of a real phone. */
+    .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:var(--bg);transform:none}
+    .phone::before{display:none}
+    .screen{border-radius:0;height:100%}
+    .statusbar{padding-top:max(14px, env(safe-area-inset-top))}
+    .nav{padding-bottom:max(22px, env(safe-area-inset-bottom))}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="title">
+    BuildnBurn
+    <small>PubMed-backed exercises · personalised to you · install via your phone's "Add to Home Screen"</small>
+  </div>
+
+  <div class="controls">
+    <button class="ctl active" data-go="welcome">1 Welcome</button>
+    <button class="ctl" data-go="stats">2 Stats</button>
+    <button class="ctl" data-go="goal">3 Goal</button>
+    <button class="ctl" data-go="results">4 Results</button>
+    <button class="ctl" data-go="detail">5 Detail</button>
+    <button class="ctl" data-go="profile">6 Profile</button>
+    <button class="ctl" data-go="plan">7 Plan</button>
+    <button class="ctl" data-go="week">8 Week</button>
+    <button class="reset" id="reset-btn">Reset all</button>
+  </div>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="right">
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M1 7h2v3H1zM5 5h2v5H5zM9 3h2v7H9zM13 1h2v9h-2z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none"><rect x="0.5" y="0.5" width="18" height="10" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="14" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <!-- WELCOME -->
+      <div class="view active" id="view-welcome">
+        <div class="welcome">
+          <div></div>
+          <div class="hero-pulse">
+            <div class="pulse">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11M21 14l-9-9M3 10l9 9M14 21l7-7M3 14l7 7"/></svg>
+            </div>
+          </div>
+          <div>
+            <h1>Train smarter,<br/>not harder.</h1>
+            <p>Tell us about you. Get a workout plan built from peer-reviewed PubMed studies — not influencer hype.</p>
+            <div class="badge-row">
+              <span class="badge">PubMed-backed</span>
+              <span class="badge">Free</span>
+              <span class="badge">Offline</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn primary" data-go="stats">Get started</button>
+            <button class="btn ghost" data-go="profile">I have an account</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="view" id="view-stats">
+        <div class="appbar">
+          <div class="back" data-go="welcome"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+        </div>
+        <div class="progress"><i style="width:33%"></i></div>
+        <div class="form-h"><div class="step">Step 1 of 3</div><h2>Your body</h2><p>So we can size sets, reps, and calories to you.</p></div>
+
+        <div class="seg" id="sex-seg">
+          <button data-sex="male" class="on">Male</button>
+          <button data-sex="female">Female</button>
+        </div>
+
+        <div class="num-input">
+          <div class="label">Height</div>
+          <div class="num-display"><span class="v" id="h-v">176</span><span class="u">cm</span></div>
+          <input type="range" id="h-slider" min="140" max="210" value="176" />
+          <div class="num-bounds"><span>140</span><span>210</span></div>
+        </div>
+
+        <div class="num-input">
+          <div class="label">Weight</div>
+          <div class="num-display"><span class="v" id="w-v">92</span><span class="u">kg</span></div>
+          <input type="range" id="w-slider" min="40" max="160" value="92" />
+          <div class="num-bounds"><span>40</span><span>160</span></div>
+        </div>
+
+        <div style="padding:0 24px;font-size:11px;color:var(--ink3);text-align:center">
+          BMI <span id="bmi-v" style="color:var(--ink2);font-weight:600">29.7</span> · <span id="bmi-tag" style="color:var(--warn);font-weight:600">Overweight</span>
+        </div>
+
+        <div class="footer-cta">
+          <button class="btn primary" data-go="goal">Continue</button>
+        </div>
+      </div>
+
+      <!-- GOAL -->
+      <div class="view" id="view-goal">
+        <div class="appbar">
+          <div class="back" data-go="stats"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+        </div>
+        <div class="progress"><i style="width:66%"></i></div>
+        <div class="form-h"><div class="step">Step 2 of 3</div><h2>What's your aim?</h2><p>Pick one. You can adjust this later.</p></div>
+
+        <div class="goal-list" id="goal-list">
+          <div class="goal on" data-goal="muscle">
+            <div class="ic" style="background:rgba(122,240,192,.15)">💪</div>
+            <div style="flex:1"><h3>Build muscle</h3><p>Hypertrophy-focused: compound lifts, 6–12 reps, progressive overload.</p></div>
+            <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          </div>
+          <div class="goal" data-goal="fat">
+            <div class="ic" style="background:rgba(245,158,11,.15)">🔥</div>
+            <div style="flex:1"><h3>Lose fat</h3><p>Higher reps + density: full-body circuits, Z2 cardio, calorie deficit.</p></div>
+            <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          </div>
+          <div class="goal" data-goal="recomp">
+            <div class="ic" style="background:rgba(90,200,255,.15)">⚖️</div>
+            <div style="flex:1"><h3>Recomp (build + lean)</h3><p>Both at once: hard lifting, modest deficit, high protein.</p></div>
+            <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          </div>
+          <div class="goal" data-goal="muscle-group">
+            <div class="ic" style="background:rgba(168,85,247,.15)">🎯</div>
+            <div style="flex:1"><h3>Target a muscle group</h3><p>Focus on specific areas — chest, back, legs, etc.</p></div>
+            <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          </div>
+        </div>
+
+        <div id="group-picker" style="display:none">
+          <div style="padding:6px 24px 6px;font-size:11px;color:var(--ink3);letter-spacing:.4px;text-transform:uppercase">Pick groups (1+)</div>
+          <div class="group-grid" id="group-grid"></div>
+        </div>
+
+        <div class="footer-cta">
+          <button class="btn primary" id="goal-cta" data-go="results">See my plan</button>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="view" id="view-results">
+        <div class="appbar">
+          <div class="back" data-go="goal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div><h1>Your top exercises</h1><div class="sub" id="results-sub">Ranked by EMG activation studies</div></div>
+        </div>
+        <div class="body">
+          <div class="summary">
+            <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+            <div style="flex:1"><h3 id="sum-title">Build muscle · 176/92</h3><p id="sum-detail">~2200 kcal · ~170 g protein · 6 days/week</p></div>
+            <div class="edit" data-go="goal">EDIT</div>
+          </div>
+
+          <div class="filter-row" id="filter-row"></div>
+
+          <div class="ex-list" id="results-list"></div>
+        </div>
+
+        <div class="nav">
+          <div class="nav-item active" data-go="results"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>Train</div>
+          <div class="nav-item" data-go="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Plan</div>
+          <div class="nav-item" data-go="profile" id="nav-saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Saved</div>
+          <div class="nav-item" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>You</div>
+        </div>
+      </div>
+
+      <!-- DETAIL -->
+      <div class="view" id="view-detail">
+        <div class="body no-nav" style="padding:0 0 24px">
+          <div class="hero-gif" id="hero-gif">
+            <div class="hero-grad"></div>
+            <div class="hero-back" data-go="results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+            <div class="hero-title">
+              <h1 id="d-name">Flat dumbbell bench press</h1>
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <span style="background:var(--accent);color:#0a0b0f;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600" id="d-tier">BEST</span>
+                <span style="background:rgba(255,255,255,.1);backdrop-filter:blur(10px);padding:4px 10px;border-radius:999px;font-size:11px" id="d-eq">Dumbbells</span>
+                <span style="background:rgba(255,255,255,.1);backdrop-filter:blur(10px);padding:4px 10px;border-radius:999px;font-size:11px" id="d-grp">Chest</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="gif-note" id="d-gif-note" hidden></p>
+
+          <div class="stat-trio">
+            <div class="trio"><div class="v" id="d-emg">93%</div><div class="l" id="d-emg-label">EMG peak</div></div>
+            <div class="trio"><div class="v" id="d-sets">3 × 8</div><div class="l">Sets · Reps</div></div>
+            <div class="trio"><div class="v" id="d-rest">90s</div><div class="l">Rest</div></div>
+          </div>
+
+          <div class="block">
+            <h3>What it builds</h3>
+            <p id="d-sci">Pectoralis major, anterior deltoid, triceps brachii.</p>
+            <p id="d-easy">Whole chest, with strong activation through the mid-pec.</p>
+          </div>
+
+          <div class="block">
+            <h3>How to do it</h3>
+            <p id="d-how">Lie flat, dumbbells over chest. Lower under control until level with your nipples. Press up and slightly together. Keep elbows ~45° from torso.</p>
+          </div>
+
+          <div class="block">
+            <h3>Research</h3>
+            <div class="pubmed-card">
+              <div class="pm-ic">PM</div>
+              <div style="flex:1">
+                <p style="font-size:13px;font-weight:600;margin:0" id="d-cite-title">Saeterbakken AH et al. (2017)</p>
+                <p style="font-size:12px;color:var(--ink3);margin:3px 0 0;line-height:1.4" id="d-cite-detail">Pectoralis major EMG activation across press variants. <em>J Strength Cond Res.</em></p>
+                <a id="d-cite-link" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent2);text-decoration:none;margin-top:6px;display:inline-block">Read on PubMed →</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="cta">
+            <button class="btn ghost" id="d-save-btn">♡ Save</button>
+            <button class="btn primary" id="d-add-btn">+ Add to plan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="view" id="view-profile">
+        <div class="appbar">
+          <div class="back" data-go="results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div><h1>Your profile</h1><div class="sub" id="prof-sub">Saved exercises and stats</div></div>
+        </div>
+        <div class="body">
+          <div class="prof-head">
+            <div class="avatar" id="prof-avatar">S</div>
+            <div>
+              <h2 id="prof-name">You</h2>
+              <div class="sub" id="prof-stats">176 cm · 92 kg · build muscle</div>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="pstat"><div class="v" id="ps-bmi">29.7</div><div class="l">BMI</div></div>
+            <div class="pstat"><div class="v" id="ps-saved">0</div><div class="l">Saved</div></div>
+            <div class="pstat"><div class="v" id="ps-plan">0</div><div class="l">In plan</div></div>
+          </div>
+
+          <div class="section-h"><h3>Your plan</h3><a data-go="plan">Open builder →</a></div>
+          <div id="plan-summary"></div>
+
+          <div class="section-h"><h3>Saved exercises</h3><a data-go="results">Browse more →</a></div>
+          <div id="saved-list"></div>
+        </div>
+
+        <div class="nav">
+          <div class="nav-item" data-go="results"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>Train</div>
+          <div class="nav-item" data-go="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Plan</div>
+          <div class="nav-item" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Saved</div>
+          <div class="nav-item active" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>You</div>
+        </div>
+      </div>
+
+      <!-- PLAN BUILDER -->
+      <div class="view" id="view-plan">
+        <div class="appbar">
+          <div class="back" data-go="profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div><h1>Weekly plan</h1><div class="sub" id="plan-sub">Tap a day, then add exercises</div></div>
+        </div>
+        <div class="body">
+          <div class="day-tabs" id="day-tabs"></div>
+          <div id="plan-day-content"></div>
+        </div>
+
+        <div class="nav">
+          <div class="nav-item" data-go="results"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>Train</div>
+          <div class="nav-item active" data-go="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Plan</div>
+          <div class="nav-item" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Saved</div>
+          <div class="nav-item" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>You</div>
+        </div>
+      </div>
+
+      <div class="view" id="view-week">
+        <div class="appbar">
+          <div class="back" data-go="results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div><h1>This week</h1><div class="sub" id="week-sub">Tue · Thu · Sat</div></div>
+        </div>
+        <div class="body">
+          <div class="day-tabs" id="week-tabs"></div>
+          <div id="week-content"></div>
+        </div>
+
+        <div class="nav">
+          <div class="nav-item" data-go="results"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>Train</div>
+          <div class="nav-item active" data-go="week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4M8 14h3M8 18h6"/></svg>Week</div>
+          <div class="nav-item" data-go="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Plan</div>
+          <div class="nav-item" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>You</div>
+        </div>
+      </div>
+
+      <!-- picker modal -->
+      <div class="modal" id="picker">
+        <div class="sheet">
+          <div class="sheet-h">
+            <h3>Add to <span id="picker-day">Mon</span></h3>
+            <span class="x" id="picker-close">×</span>
+          </div>
+          <div class="filter-row" id="picker-filter" style="padding:0 18px 10px"></div>
+          <div class="sheet-body" id="picker-list"></div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"><span class="ic">✓</span><span id="toast-msg">Saved</span></div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const GROUPS = {
+  chest:{label:"Chest",color:"var(--chest)"},
+  back:{label:"Back",color:"var(--back)"},
+  shoulders:{label:"Shoulders",color:"var(--shoulders)"},
+  biceps:{label:"Biceps",color:"var(--biceps)"},
+  triceps:{label:"Triceps",color:"var(--triceps)"},
+  quads:{label:"Quads",color:"var(--quads)"},
+  hams:{label:"Hamstrings",color:"var(--hams)"},
+  glutes:{label:"Glutes",color:"var(--glutes)"},
+  core:{label:"Core",color:"var(--core)"},
+  calves:{label:"Calves",color:"var(--calves)"},
+  posture:{label:"Posture / Neck",color:"var(--posture)"},
+};
+
+const EXERCISES = [
+  // chest
+  {id:"db-bench", name:"Flat dumbbell bench press", group:"chest", tier:"BEST", emg:93, sets:"3 × 8", rest:"90s", gif:"26", eq:"Dumbbells", sci:"Pectoralis major (sternal + costal heads), anterior deltoid, triceps.", easy:"Whole chest, especially the mid-pec.", how:"Lie flat, lower DBs to nipple line, press up and slightly together.", citeT:"Saeterbakken AH et al. (2017)", citeD:"EMG activation across bench press variants. J Strength Cond Res."},
+  {id:"incline-db", name:"30° incline dumbbell press", group:"chest", tier:"GREAT", emg:85, sets:"3 × 10", rest:"90s", gif:"31", eq:"Dumbbells", sci:"Upper pectoralis (clavicular head), front deltoid.", easy:"Upper chest — fills out the area below the collarbone.", how:"Set bench to 30°. Lower DBs along chest line. Press straight up.", citeT:"Schoenfeld BJ et al. (2014)", citeD:"Influence of bench angle on chest activation. JSCR."},
+  {id:"pushup", name:"Push-up (weighted)", group:"chest", tier:"GOOD", emg:72, sets:"3 × 12", rest:"60s", gif:"47", eq:"Bodyweight", sci:"Pectoralis major, anterior deltoid, serratus anterior.", easy:"Whole chest + front shoulder + the muscle that wraps your ribs.", how:"Hands shoulder-width, body straight, chest just above floor.", citeT:"Calatayud J et al. (2014)", citeD:"Push-up vs bench EMG. JSCR."},
+  // back
+  {id:"pullup", name:"Pull-up", group:"back", tier:"BEST", emg:96, sets:"3 × max", rest:"120s", gif:"83", eq:"Bodyweight", sci:"Latissimus dorsi, biceps brachii, teres major.", easy:"The wing muscles that make your back wide.", how:"Hang dead, pull chest to bar, control down.", citeT:"Youdas JW et al. (2010)", citeD:"Lat activation in pull-up variations. JOSPT."},
+  {id:"db-row", name:"Dumbbell one-arm row", group:"back", tier:"GREAT", emg:88, sets:"3 × 10", rest:"75s", gif:"90", eq:"Dumbbells", sci:"Latissimus, mid-trapezius, rhomboids, rear delt.", easy:"Lats and the muscles between shoulder blades.", how:"One knee + hand on bench. Pull DB to hip. Squeeze blade.", citeT:"Lehman GJ (2004)", citeD:"Single-arm row activation. JSCR."},
+  {id:"lat-pd", name:"Lat pulldown (wide)", group:"back", tier:"GOOD", emg:80, sets:"3 × 12", rest:"75s", gif:"86", eq:"Cable", sci:"Latissimus, teres major, biceps.", easy:"Lats, easier to learn the pulling motion than pull-ups.", how:"Wide grip, lean back ~15°, pull bar to upper chest.", citeT:"Andersen V et al. (2014)", citeD:"Grip width effect on pulldown. JSCR."},
+  // shoulders
+  {id:"lat-raise", name:"Lateral raise", group:"shoulders", tier:"BEST", emg:90, sets:"4 × 12", rest:"60s", gif:"32", eq:"Dumbbells", sci:"Lateral deltoid head.", easy:"The side cap that gives shoulders width.", how:"Slight forward lean, raise to shoulder height, pinky slightly up.", citeT:"Coratella G et al. (2020)", citeD:"Side delt EMG in lateral raises. PLOS ONE."},
+  {id:"ohp", name:"Overhead press", group:"shoulders", tier:"GREAT", emg:82, sets:"3 × 8", rest:"120s", gif:"10", eq:"Barbell", sci:"Anterior + lateral deltoid, triceps, upper trap.", easy:"Whole shoulder + the back of the arm.", how:"Bar at shoulders, brace, press straight up, lock out.", citeT:"Saeterbakken AH (2013)", citeD:"Standing vs seated press EMG. JSCR."},
+  {id:"face-pull", name:"Cable rope face pull", group:"shoulders", tier:"GOOD", emg:76, sets:"3 × 15", rest:"45s", gif:"874", eq:"Cable", sci:"Posterior deltoid, mid-trap, rotator cuff.", easy:"Back of the shoulder + the small stabilizers.", how:"Rope to forehead, elbows high, external rotation at end.", citeT:"Schoenfeld B et al. (2013)", citeD:"Rear delt activation cable variants. JSCR."},
+  // biceps
+  {id:"ez-curl", name:"EZ-bar curl", group:"biceps", tier:"BEST", emg:91, sets:"3 × 10", rest:"75s", gif:"95", eq:"Barbell", sci:"Biceps brachii (both heads), brachialis.", easy:"Front of the upper arm.", how:"Wider grip on EZ bar, elbows pinned, curl up, control down.", citeT:"Marcolin G et al. (2018)", citeD:"Biceps EMG across curl variants. JSCR."},
+  {id:"db-curl", name:"Alternating dumbbell curl", group:"biceps", tier:"GREAT", emg:85, sets:"3 × 10", rest:"60s", gif:"116", eq:"Dumbbells", sci:"Biceps brachii, brachialis.", easy:"Front of the upper arm with rotation.", how:"Curl one arm, supinate at top, lower fully. Alternate.", citeT:"Oliveira LF (2009)", citeD:"Supination biceps activation. JEK."},
+  {id:"hammer", name:"Hammer curl", group:"biceps", tier:"GOOD", emg:78, sets:"3 × 12", rest:"60s", gif:"1011", eq:"Dumbbells", sci:"Brachialis, brachioradialis.", easy:"The deeper arm muscle that pushes the biceps up.", how:"Neutral grip (thumbs up). Curl, no rotation.", citeT:"Naito A (2004)", citeD:"Brachialis activation patterns. EJAP."},
+  // triceps
+  {id:"oh-tri", name:"Overhead triceps extension", group:"triceps", tier:"BEST", emg:92, sets:"3 × 10", rest:"75s", gif:"244", eq:"Dumbbells", sci:"Triceps long head primarily, plus medial + lateral.", easy:"The long head of the triceps — biggest part of the arm.", how:"DB overhead, lower behind head, full stretch, extend up.", citeT:"Kholinne E et al. (2018)", citeD:"Triceps head activation by arm position. CIOS."},
+  {id:"pushdown", name:"Cable rope pushdown", group:"triceps", tier:"GREAT", emg:84, sets:"3 × 12", rest:"60s", gif:"159", eq:"Cable", sci:"Triceps lateral + medial heads.", easy:"Outer/back of the arm.", how:"Elbows pinned. Push down, spread rope at the bottom.", citeT:"Boeckh-Behrens (2006)", citeD:"Triceps EMG comparison. SwS."},
+  {id:"close-bench", name:"Close-grip bench press", group:"triceps", tier:"GOOD", emg:78, sets:"3 × 8", rest:"90s", gif:null, eq:"Barbell", sci:"Triceps medial + lateral, anterior deltoid, chest.", easy:"All three heads of the triceps, plus assistance from chest.", how:"Shoulder-width grip, elbows tucked, lower to lower chest.", citeT:"Lehman GJ (2005)", citeD:"Close vs wide grip bench EMG. JSCR."},
+  // quads
+  {id:"squat", name:"Back squat", group:"quads", tier:"BEST", emg:95, sets:"3 × 6", rest:"180s", gif:"12", eq:"Barbell", sci:"Quadriceps (all 4 heads), glutes, adductors, core.", easy:"Whole front of the thigh, butt, inner thigh.", how:"Bar on traps, brace, sit between heels, drive up.", citeT:"Schoenfeld BJ (2010)", citeD:"Squat depth and quad EMG. JSCR."},
+  {id:"split-squat", name:"Bulgarian split squat", group:"quads", tier:"GREAT", emg:87, sets:"3 × 10", rest:"75s", gif:"1346", eq:"Dumbbells", sci:"Quadriceps, glutes, adductors.", easy:"One leg at a time — quads + butt + inner thigh.", how:"Rear foot elevated, drop straight down, drive up.", citeT:"Mackey ER (2020)", citeD:"Split squat unilateral activation. JSCR."},
+  {id:"leg-ext", name:"Leg extension", group:"quads", tier:"GOOD", emg:80, sets:"3 × 12", rest:"60s", gif:"130", eq:"Machine", sci:"Quadriceps (rectus femoris emphasis).", easy:"Front of the thigh in isolation.", how:"Pad on shins, extend legs, pause, control down.", citeT:"Earp JE (2010)", citeD:"Leg ext vs squat quad activation. JSCR."},
+  // hams
+  {id:"rdl", name:"Romanian deadlift", group:"hams", tier:"BEST", emg:93, sets:"3 × 8", rest:"120s", gif:"199", eq:"Barbell", sci:"Hamstrings, glutes, erector spinae.", easy:"Back of the thigh + butt + lower back.", how:"Soft knees, hinge at hips, bar slides down legs, return.", citeT:"McAllister MJ (2014)", citeD:"RDL vs deadlift hamstring EMG. JSCR."},
+  {id:"nordic", name:"Nordic hamstring curl", group:"hams", tier:"GREAT", emg:88, sets:"3 × 6", rest:"90s", gif:null, eq:"Bodyweight", sci:"Biceps femoris (long head), semitendinosus.", easy:"Back of the thigh in eccentric stretch.", how:"Anchor feet, lower body forward slowly, catch with hands.", citeT:"van Dyk N (2019)", citeD:"Nordic hamstring injury prevention. BJSM."},
+  {id:"hip-ext", name:"45° hip extension", group:"hams", tier:"GOOD", emg:78, sets:"3 × 12", rest:"60s", gif:"92", eq:"Bodyweight", sci:"Hamstrings, glutes, erector spinae.", easy:"Hams + butt + low back, lighter than RDL.", how:"Pad at hips, hinge down, return to straight.", citeT:"Marcolin G (2017)", citeD:"Posterior chain activation. JSCR."},
+  // glutes
+  {id:"hip-thrust", name:"Barbell hip thrust", group:"glutes", tier:"BEST", emg:98, sets:"3 × 10", rest:"90s", gif:"386", eq:"Barbell", sci:"Gluteus maximus (top activation), hamstrings.", easy:"The strongest glute exercise on Earth.", how:"Upper back on bench, bar over hips, drive hips up, squeeze.", citeT:"Contreras B (2015)", citeD:"Hip thrust vs squat glute EMG. JSCR."},
+  {id:"glute-squat", name:"Back squat (deep)", group:"glutes", tier:"GREAT", emg:84, sets:"3 × 6", rest:"180s", gif:"12", eq:"Barbell", sci:"Glute max, quads, adductors.", easy:"Glutes through deep range.", how:"Below parallel, drive knees out, push floor away.", citeT:"Schoenfeld (2010)", citeD:"Squat depth and glute activation. JSCR."},
+  {id:"glute-bss", name:"Bulgarian split squat", group:"glutes", tier:"GOOD", emg:80, sets:"3 × 10", rest:"75s", gif:"1346", eq:"Dumbbells", sci:"Gluteus max, quads.", easy:"Single-leg glute work.", how:"Rear foot elevated, slight forward lean for glute bias.", citeT:"Mackey (2020)", citeD:"Split squat glute EMG. JSCR."},
+  // core
+  {id:"side-plank", name:"Side plank", group:"core", tier:"BEST", emg:88, sets:"3 × 30s", rest:"45s", gif:"633", eq:"Bodyweight", sci:"External obliques, internal obliques, quadratus lumborum.", easy:"Side abs and the deep stabilizer that supports the spine.", how:"Elbow under shoulder, hips off floor, body straight.", citeT:"McGill SM (2010)", citeD:"Core activation in plank variants. JSCR."},
+  {id:"plank", name:"Front plank", group:"core", tier:"GREAT", emg:80, sets:"3 × 45s", rest:"30s", gif:"631", eq:"Bodyweight", sci:"Rectus abdominis, transverse abdominis.", easy:"Front abs + the deep belt around your waist.", how:"Forearms down, body straight, brace whole midsection.", citeT:"Calatayud J (2017)", citeD:"Plank EMG progression. ESS."},
+  {id:"hlr", name:"Hanging leg raise", group:"core", tier:"GOOD", emg:84, sets:"3 × 10", rest:"60s", gif:"61", eq:"Bodyweight", sci:"Rectus abdominis (lower emphasis), hip flexors.", easy:"Lower abs.", how:"Hang dead, raise legs to 90° with control, slow down.", citeT:"Escamilla RF (2010)", citeD:"Lower ab activation in hanging exercises. JOSPT."},
+  // calves
+  {id:"std-calf", name:"Standing calf raise", group:"calves", tier:"BEST", emg:90, sets:"4 × 12", rest:"45s", gif:"143", eq:"Barbell", sci:"Gastrocnemius (medial + lateral), soleus.", easy:"Diamond-shape muscle on the back of the lower leg.", how:"Ball of foot on block, full stretch down, full rise up.", citeT:"Riemann BL (2011)", citeD:"Standing vs seated calf EMG. JSCR."},
+  {id:"sit-calf", name:"Seated calf raise", group:"calves", tier:"GREAT", emg:82, sets:"3 × 15", rest:"30s", gif:"144", eq:"Machine", sci:"Soleus (knee bent isolates it).", easy:"Deeper calf muscle for ankle drive.", how:"Sit, pad on knees, full ROM. Slower tempo.", citeT:"Riemann (2011)", citeD:"Seated calf soleus activation. JSCR."},
+  {id:"sl-calf", name:"Single-leg calf raise", group:"calves", tier:"GOOD", emg:75, sets:"3 × 12", rest:"45s", gif:"1236", eq:"Bodyweight", sci:"Gastrocnemius, soleus, balance stabilizers.", easy:"Loaded version of one-leg push-off.", how:"Stand on step, full hang, drive up high.", citeT:"Hébert-Losier (2009)", citeD:"Unilateral calf EMG. PT in Sport."},
+  // posture / neck — upper crossed syndrome correctives. Run 2-3× per week alongside normal sessions.
+  // tier "FIX" keeps these out of the EMG-ranked tiers; emg:null means no verified %MVIC figure, not zero.
+  // gifNote is set wherever the Jefit animation is the nearest available match rather than the exact movement.
+  {id:"pos-face-pull", name:"Face pull", group:"posture", tier:"FIX", emg:76, sets:"3 × 15", rest:"45s", gif:"874", eq:"Cable", sci:"Posterior deltoid, mid and lower trapezius, external rotators.", easy:"Back of the shoulder plus the muscles that pull the shoulder blades down and back. The single best lift for this problem.", how:"Rope at upper chest to eye height, overhand grip, thumbs toward you. Step back so the arms are extended, lean back slightly. Pull the rope to your face, elbows flaring out and up, hands finishing beside your ears. At the end, rotate the hands so the knuckles point behind you. Squeeze the blades together, return slow.", citeT:"Schoenfeld B et al. (2013)", citeD:"Rear deltoid activation across cable variants. <em>J Strength Cond Res.</em>"},
+  {id:"seal-row", name:"Chest-supported row (seal row)", group:"posture", tier:"FIX", emg:null, sets:"3 × 12", rest:"75s", gif:"1045", gifNote:"Jefit's nearest animation is the reverse-grip incline row. The chest-supported position is the same; use a neutral or overhand grip and drive the elbows toward your hips.", eq:"Dumbbells", sci:"Mid-trapezius, rhomboids, latissimus dorsi, posterior deltoid.", easy:"The muscles between your shoulder blades that hold you upright.", how:"Lie face down on an incline bench, chest flat on the pad, dumbbells hanging straight down. Pull both elbows back and up, driving them toward your hips, squeezing the shoulder blades together at the top. Do not shrug the shoulders toward your ears. Lower under control until the arms are straight.", citeT:"Fenwick CM et al. (2009)", citeD:"Comparison of different rowing exercises: trunk muscle activation. <em>J Strength Cond Res.</em> 23(2):350-8.", pmid:"19197209"},
+  {id:"prone-y", name:"Prone Y raise", group:"posture", tier:"FIX", emg:null, sets:"3 × 15", rest:"45s", gif:"34", gifNote:"Jefit's nearest animation is the prone lateral (T) raise. Same bench setup, but take the arms to roughly 30 to 45° from your head into a Y, thumbs leading.", eq:"Dumbbells", sci:"Lower trapezius, serratus anterior, posterior deltoid.", easy:"The lower part of the trap, which pulls the shoulder blade down. Directly targets one of the weak links.", how:"Lie face down on an incline bench, light dumbbells hanging, thumbs pointing up. Raise both arms up and out at 30 to 45° from your body into a Y shape, thumbs leading. Lift only until the arms are in line with your ears, do not overextend. Lower slowly. Very light weight: this is about the lower trap firing, not load.", citeT:"Cools AM et al. (2007)", citeD:"Rehabilitation of scapular muscle balance: which exercises to prescribe? <em>Am J Sports Med.</em> 35(10):1744-51.", pmid:"17606671"},
+  {id:"scap-pushup", name:"Scapular push-up", group:"posture", tier:"FIX", emg:null, sets:"3 × 15", rest:"45s", gif:"1342", gifNote:"Jefit's animation shows the straight-arm plank, which is the start position. Add the movement described below; the elbows never bend.", eq:"Bodyweight", sci:"Serratus anterior, with rhomboids controlling the return.", easy:"The muscle wrapping your ribs that holds the shoulder blade flat against your back.", how:"Push-up plank position, arms straight, hands under shoulders. Without bending the elbows, let the shoulder blades sink together and down so the chest dips slightly toward the floor. Then push through the hands and spread the blades apart, upper back rounding slightly. That is one rep. Elbows stay locked the whole time.", citeT:"Decker MJ et al. (1999)", citeD:"Serratus anterior muscle activity during selected rehabilitation exercises. <em>Am J Sports Med.</em> 27(6):784-91.", pmid:"10569366"},
+  {id:"wall-slide", name:"Wall slide (serratus)", group:"posture", tier:"FIX", emg:null, sets:"3 × 12", rest:"45s", gif:"885", gifNote:"Jefit has no wall slide. This animation shows the overhead reach pattern; perform it with your back, elbows and wrists in contact with a wall.", eq:"Bodyweight", sci:"Serratus anterior, lower trapezius.", easy:"Teaches the shoulder blade to rotate properly as the arm goes overhead.", how:"Stand with your back against a wall, arms up in a goal post position, elbows and wrists touching the wall. Slide the arms up overhead keeping the elbows and wrists in contact with the wall, then slide back down to the start. Keep the lower back flat against the wall, do not arch.", citeT:"Hardwick DH et al. (2006)", citeD:"Serratus anterior activation during a wall slide versus traditional exercises. <em>J Orthop Sports Phys Ther.</em> 36(12):903-10.", pmid:"17193867"},
+  {id:"chin-tuck", name:"Chin tuck", group:"posture", tier:"FIX", emg:null, sets:"3 × 10 (5s holds)", rest:"30s", gif:"563", gifNote:"Jefit has no chin tuck. This animation shows loaded neck flexion on a ball. Do the unloaded glide described below instead: no ball, no weight, and no nodding.", eq:"Bodyweight", sci:"Deep cervical flexors (longus capitis, longus colli).", easy:"The small deep muscles at the front of the neck that hold your head over your shoulders. Matters more than it feels like it should.", how:"Sit or stand tall. Without tilting the head down, glide the chin straight back, as if making a double chin. You should feel a stretch at the base of the skull. Hold 5 seconds, release. This is a small movement, an inch or two of glide, not a nod.", citeT:"Falla D et al. (2007)", citeD:"Effect of neck exercise on sitting posture in patients with chronic neck pain. <em>Phys Ther.</em> 87(4):408-17.", pmid:"17341512"},
+  {id:"pec-stretch", name:"Doorway pec stretch", group:"posture", tier:"FIX", emg:null, sets:"2 × 30s per side", rest:"0s", gif:"824", gifNote:"Jefit lists this as the one-arm wall stretch. Same mechanics as the doorway version; a doorframe lets you step further through.", eq:"Bodyweight", sci:"Pectoralis major and pectoralis minor (lengthening).", easy:"Opens the tight chest that pulls you into the hunched position. Daily.", how:"Stand in a doorway, forearm on the frame with the elbow bent 90°, roughly shoulder height. Step forward through the doorway with the same side leg until you feel a stretch across the chest and front shoulder. Hold 30 seconds, then swap sides. Repeat with the arm higher on the frame to reach a different part of the pec.", citeT:"Borstad JD et al. (2006)", citeD:"Comparison of three stretches for the pectoralis minor muscle. <em>J Shoulder Elbow Surg.</em> 15(3):324-30.", pmid:"16679233"},
+  {id:"tspine-roller", name:"Thoracic extension over foam roller", group:"posture", tier:"FIX", emg:null, sets:"2 min daily", rest:"0s", gif:"1364", eq:"Foam roller", sci:"Thoracic spine extension mobility; unloads the compensating upper trapezius.", easy:"Gets the stiff upper back moving so the neck stops doing its job. Helps the jammed feeling under the neck.", how:"Lie on your back, foam roller placed horizontally under the upper back, knees bent, feet flat. Support the head with both hands. Slowly arch back over the roller, letting the upper back extend, then curl back up. Move the roller up an inch or two between reps to cover the whole upper back.", citeT:"Page P et al. (2011)", citeD:"Shoulder muscle imbalance and subacromial impingement syndrome in overhead athletes. <em>Int J Sports Phys Ther.</em> 6(1):51-8.", pmid:"21655457"},
+  {id:"scap-taps", name:"Plank with shoulder taps", group:"posture", tier:"FIX", emg:null, sets:"3 × 20 taps", rest:"45s", gif:"1427", eq:"Bodyweight", sci:"Serratus anterior, deep core, anti-rotation stabilizers.", easy:"Same serratus job as the scapular push-up, but you hold the blade steady instead of moving it. Good swap on days the scapular push-up feels sloppy.", how:"High plank, hands under shoulders, feet a little wider than normal. Keeping the hips level and square, lift one hand and tap the opposite shoulder, then return. Alternate. Do not let the hips rock.", citeT:"Decker MJ et al. (1999)", citeD:"Serratus anterior muscle activity during selected rehabilitation exercises. <em>Am J Sports Med.</em> 27(6):784-91.", pmid:"10569366"},
+  {id:"rear-delt-row", name:"Dumbbell rear delt row", group:"posture", tier:"FIX", emg:null, sets:"3 × 12", rest:"60s", gif:"1330", eq:"Dumbbells", sci:"Posterior deltoid, mid-trapezius, rhomboids.", easy:"Adds pulling volume with the elbows high, which biases the upper back rather than the lats.", how:"Hinge forward, back flat, dumbbells hanging. Row with the elbows flared out to about 90° from the torso, pulling toward the chest rather than the hips. Squeeze the blades, lower under control. No shrugging.", citeT:"Fenwick CM et al. (2009)", citeD:"Comparison of different rowing exercises: trunk muscle activation. <em>J Strength Cond Res.</em> 23(2):350-8.", pmid:"19197209"},
+  {id:"ext-rotation", name:"Dumbbell external rotation", group:"posture", tier:"FIX", emg:null, sets:"3 × 15", rest:"45s", gif:"872", eq:"Dumbbells", sci:"Infraspinatus, teres minor (rotator cuff external rotators).", easy:"The small rotators behind the shoulder. Weak here is why the shoulder sits rolled forward.", how:"Elbow tucked at your side and bent 90°, light dumbbell. Rotate the forearm outward away from your belly, keeping the elbow pinned. Return slowly. Light weight, strict form.", citeT:"Cools AM et al. (2007)", citeD:"Rehabilitation of scapular muscle balance: which exercises to prescribe? <em>Am J Sports Med.</em> 35(10):1744-51.", pmid:"17606671"},
+  {id:"kneel-tspine", name:"Kneeling thoracic mobility", group:"posture", tier:"FIX", emg:null, sets:"2 × 10 per side", rest:"30s", gif:"1343", eq:"Bodyweight", sci:"Thoracic spine extension and rotation mobility.", easy:"Same target as the foam roller work, for when you do not have a roller with you.", how:"Kneel, one hand behind the head, the other on the floor. Rotate the elbow down toward the opposite wrist, then open up and rotate it toward the ceiling, following it with your eyes. Move from the upper back, not the lower back.", citeT:"Page P et al. (2011)", citeD:"Shoulder muscle imbalance and subacromial impingement syndrome in overhead athletes. <em>Int J Sports Phys Ther.</em> 6(1):51-8.", pmid:"21655457"},
+];
+
+// ----- state -----
+const KEY = 'bb-v2';
+const defaultState = {
+  sex:'male', height:176, weight:92,
+  goal:'muscle', muscleGroups:['chest','back'],
+  saved:[], plan:{Mon:[],Tue:[],Wed:[],Thu:[],Fri:[],Sat:[],Sun:[]},
+  activeFilter:'all', planDay:'Mon',
+};
+let state = load();
+function load(){
+  try{ return Object.assign({}, defaultState, JSON.parse(localStorage.getItem(KEY)||'{}')); }
+  catch(e){ return {...defaultState}; }
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// ----- screens -----
+const screens = ['welcome','stats','goal','results','detail','profile','plan','week'];
+
+// ----- the 3-day program -----
+// Fixed Tue/Thu/Sat split. Each session is full body, with pulling volume kept at roughly
+// double the pressing volume while the upper crossed pattern settles. Ids index EXERCISES.
+const PROGRAM = {
+  Tue: { key:'A', title:'Full Body A', sub:'Squat + full posture block', items:[
+    {id:'tspine-roller', pre:true, dose:'2 min'},
+    {id:'pec-stretch',   pre:true, dose:'2 × 30s / side'},
+    {id:'wall-slide',    pre:true, dose:'2 × 12'},
+    {id:'chin-tuck',     pre:true, dose:'3 × 10'},
+    {id:'squat',      dose:'3 × 6',   rest:'180s'},
+    {id:'rdl',        dose:'3 × 8',   rest:'120s'},
+    {id:'seal-row',   dose:'3 × 12',  rest:'75s'},
+    {id:'pullup',     dose:'3 × max', rest:'120s'},
+    {id:'db-bench',   dose:'3 × 8',   rest:'90s'},
+    {id:'prone-y',    dose:'3 × 15',  rest:'45s'},
+    {id:'scap-pushup',dose:'3 × 15',  rest:'45s'},
+    {id:'pos-face-pull', dose:'3 × 15', rest:'45s'},
+    {id:'side-plank', dose:'3 × 30s / side', rest:'45s'},
+  ]},
+  Thu: { key:'B', title:'Full Body B', sub:'Hinge + vertical pull', items:[
+    {id:'tspine-roller', pre:true, dose:'2 min'},
+    {id:'pec-stretch',   pre:true, dose:'2 × 30s / side'},
+    {id:'chin-tuck',     pre:true, dose:'3 × 10'},
+    {id:'hip-thrust',  dose:'3 × 10', rest:'90s'},
+    {id:'split-squat', dose:'3 × 10 / leg', rest:'75s'},
+    {id:'lat-pd',      dose:'3 × 12', rest:'75s'},
+    {id:'db-row',      dose:'3 × 10 / side', rest:'75s'},
+    {id:'ohp',         dose:'3 × 8',  rest:'120s'},
+    {id:'pos-face-pull', dose:'3 × 15', rest:'45s'},
+    {id:'rear-delt-row', dose:'3 × 12', rest:'60s'},
+    {id:'ext-rotation',  dose:'3 × 15 / side', rest:'45s'},
+    {id:'hammer',      dose:'3 × 12', rest:'60s'},
+    {id:'std-calf',    dose:'4 × 12', rest:'45s'},
+    {id:'hlr',         dose:'3 × 10', rest:'60s'},
+  ]},
+  Sat: { key:'C', title:'Full Body C', sub:'Unilateral + arms', items:[
+    {id:'tspine-roller', pre:true, dose:'2 min'},
+    {id:'pec-stretch',   pre:true, dose:'2 × 30s / side'},
+    {id:'kneel-tspine',  pre:true, dose:'2 × 10 / side'},
+    {id:'split-squat', dose:'3 × 10 / leg', rest:'75s'},
+    {id:'hip-ext',     dose:'3 × 12', rest:'60s'},
+    {id:'lat-pd',      dose:'3 × 12', rest:'75s'},
+    {id:'seal-row',    dose:'3 × 12', rest:'75s'},
+    {id:'incline-db',  dose:'3 × 10', rest:'90s'},
+    {id:'pos-face-pull', dose:'3 × 15', rest:'45s'},
+    {id:'scap-pushup', dose:'3 × 15', rest:'45s'},
+    {id:'ez-curl',     dose:'3 × 10', rest:'75s'},
+    {id:'oh-tri',      dose:'3 × 10', rest:'75s'},
+    {id:'sit-calf',    dose:'3 × 15', rest:'30s'},
+    {id:'plank',       dose:'3 × 45s', rest:'30s'},
+  ]},
+};
+const PROGRAM_DAYS = ['Tue','Thu','Sat'];
+function go(view){
+  if(!screens.includes(view)) return;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.ctl').forEach(c=>c.classList.toggle('active', c.dataset.go===view));
+  if(view==='results') renderResults();
+  if(view==='profile') renderProfile();
+  if(view==='plan') renderPlan();
+  if(view==='week') renderWeek();
+  if(view==='stats') syncStats();
+  if(view==='goal') syncGoal();
+}
+
+document.body.addEventListener('click', ev=>{
+  const t = ev.target.closest('[data-go]');
+  if(t){ go(t.dataset.go); }
+});
+
+// ----- stats -----
+function syncStats(){
+  document.getElementById('h-v').textContent = state.height;
+  document.getElementById('w-v').textContent = state.weight;
+  const h = document.getElementById('h-slider'); h.value = state.height;
+  const w = document.getElementById('w-slider'); w.value = state.weight;
+  setSliderFill(h); setSliderFill(w);
+  updateBMI();
+  document.querySelectorAll('#sex-seg button').forEach(b=>b.classList.toggle('on', b.dataset.sex===state.sex));
+}
+function setSliderFill(el){
+  const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+  el.style.setProperty('--p', pct+'%');
+}
+function updateBMI(){
+  const m = state.height/100;
+  const bmi = state.weight / (m*m);
+  document.getElementById('bmi-v').textContent = bmi.toFixed(1);
+  const tag = document.getElementById('bmi-tag');
+  let label, color;
+  if(bmi < 18.5){label='Underweight';color='var(--accent2)'}
+  else if(bmi < 25){label='Healthy';color='var(--accent)'}
+  else if(bmi < 30){label='Overweight';color='var(--warn)'}
+  else {label='Obese';color='var(--bad)'}
+  tag.textContent = label; tag.style.color = color;
+}
+document.getElementById('h-slider').addEventListener('input', e=>{
+  state.height = +e.target.value;
+  document.getElementById('h-v').textContent = state.height;
+  setSliderFill(e.target); updateBMI(); save();
+});
+document.getElementById('w-slider').addEventListener('input', e=>{
+  state.weight = +e.target.value;
+  document.getElementById('w-v').textContent = state.weight;
+  setSliderFill(e.target); updateBMI(); save();
+});
+document.querySelectorAll('#sex-seg button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    state.sex = b.dataset.sex;
+    document.querySelectorAll('#sex-seg button').forEach(x=>x.classList.toggle('on', x===b));
+    save();
+  });
+});
+
+// ----- goal -----
+function syncGoal(){
+  document.querySelectorAll('#goal-list .goal').forEach(g=>g.classList.toggle('on', g.dataset.goal===state.goal));
+  const gp = document.getElementById('group-picker');
+  gp.style.display = state.goal==='muscle-group' ? 'block' : 'none';
+  // build group grid if empty
+  const grid = document.getElementById('group-grid');
+  if(!grid.children.length){
+    grid.innerHTML = Object.entries(GROUPS).map(([k,g])=>`
+      <div class="gpill" data-grp="${k}" style="color:${g.color}">
+        <span class="dot" style="background:${g.color}"></span>${g.label}
+        <span class="ck"></span>
+      </div>`).join('');
+    grid.querySelectorAll('.gpill').forEach(p=>{
+      p.addEventListener('click', ()=>{
+        const k = p.dataset.grp;
+        const i = state.muscleGroups.indexOf(k);
+        if(i<0) state.muscleGroups.push(k); else state.muscleGroups.splice(i,1);
+        save(); syncGoal();
+      });
+    });
+  }
+  grid.querySelectorAll('.gpill').forEach(p=>p.classList.toggle('on', state.muscleGroups.includes(p.dataset.grp)));
+  // CTA disabled if no groups picked
+  const cta = document.getElementById('goal-cta');
+  cta.disabled = state.goal==='muscle-group' && state.muscleGroups.length===0;
+}
+document.querySelectorAll('#goal-list .goal').forEach(g=>{
+  g.addEventListener('click', ()=>{
+    state.goal = g.dataset.goal;
+    save(); syncGoal();
+  });
+});
+
+// ----- results -----
+// EMG is null for the corrective (FIX) work: no verified %MVIC figure exists for those,
+// which is not the same as zero. Anything that ranks or displays emg goes through these.
+const emgScore = e => e.emg==null ? 0 : e.emg;
+const emgLabel = e => e.emg==null ? 'Corrective' : `EMG ${e.emg}%`;
+
+function recommendedFor(state){
+  // The FIX block is a standing prescription rather than a goal-driven pick, so it rides
+  // along with every goal except an explicit muscle-group query (where posture is selectable).
+  const fixes = EXERCISES.filter(e=>e.tier==='FIX');
+  const withFixes = list => [...list, ...fixes.filter(f=>!list.includes(f))];
+
+  // simple personalization rules
+  if(state.goal==='muscle-group'){
+    return EXERCISES.filter(e=>state.muscleGroups.includes(e.group));
+  }
+  if(state.goal==='fat'){
+    // higher rep / compound prioritized — score by group breadth
+    const compoundIds = new Set(['squat','rdl','db-bench','pullup','ohp','db-row','hip-thrust','split-squat','plank','hlr']);
+    return withFixes([...EXERCISES].filter(e=>e.tier!=='FIX').sort((a,b)=>{
+      const aS = (compoundIds.has(a.id)?2:0) + emgScore(a)/100;
+      const bS = (compoundIds.has(b.id)?2:0) + emgScore(b)/100;
+      return bS - aS;
+    }).slice(0,12));
+  }
+  if(state.goal==='recomp'){
+    // BEST tier from each group
+    return withFixes(EXERCISES.filter(e=>e.tier==='BEST'));
+  }
+  // default: build muscle — top 2 per group
+  const out = [];
+  Object.keys(GROUPS).forEach(g=>{
+    const inGroup = EXERCISES.filter(e=>e.group===g && e.tier!=='FIX').slice(0,2);
+    out.push(...inGroup);
+  });
+  return withFixes(out);
+}
+
+function renderResults(){
+  const recs = recommendedFor(state);
+  // summary
+  const m = state.height/100;
+  const bmi = (state.weight/(m*m)).toFixed(1);
+  const goalLabels = {muscle:'Build muscle',fat:'Lose fat',recomp:'Recomp',['muscle-group']:`Target: ${state.muscleGroups.map(k=>GROUPS[k].label).join(', ')}`};
+  document.getElementById('sum-title').textContent = `${goalLabels[state.goal]} · ${state.height}/${state.weight}`;
+  const kcal = Math.round(state.weight * (state.goal==='fat' ? 26 : state.goal==='muscle' ? 35 : 30));
+  const protein = Math.round(state.weight * (state.goal==='muscle' ? 1.8 : 1.6));
+  const days = state.goal==='fat' ? 5 : state.goal==='muscle' ? 6 : 4;
+  document.getElementById('sum-detail').textContent = `~${kcal} kcal · ~${protein} g protein · ${days} days/week · BMI ${bmi}`;
+  document.getElementById('results-sub').textContent = `${recs.length} exercises ranked by EMG studies`;
+
+  // filters
+  const groupsInRecs = [...new Set(recs.map(r=>r.group))];
+  const filterRow = document.getElementById('filter-row');
+  filterRow.innerHTML = `<div class="fchip ${state.activeFilter==='all'?'on':''}" data-f="all">All</div>` +
+    groupsInRecs.map(g=>`<div class="fchip ${state.activeFilter===g?'on':''}" data-f="${g}">${GROUPS[g].label}</div>`).join('');
+  filterRow.querySelectorAll('.fchip').forEach(c=>{
+    c.addEventListener('click', ()=>{ state.activeFilter = c.dataset.f; save(); renderResults(); });
+  });
+
+  // list
+  const list = document.getElementById('results-list');
+  const filtered = state.activeFilter==='all' ? recs : recs.filter(r=>r.group===state.activeFilter);
+  list.innerHTML = filtered.map((e,i)=>{
+    const rank = i+1;
+    const tierCls = e.tier==='BEST' ? 't1' : '';
+    const isSaved = state.saved.includes(e.id);
+    const gifBg = e.gif
+      ? `background-image:url('https://cdn.jefit.com/assets/img/exercises/gifs/${e.gif}.gif')`
+      : `background:linear-gradient(135deg,${getCSSVar(GROUPS[e.group].color)},#1a1d28)`;
+    return `
+      <div class="ex-row" data-ex="${e.id}">
+        <div class="ex-thumb" style="${gifBg}"><span class="rk ${tierCls}">${e.tier}</span></div>
+        <div class="ex-info">
+          <h4>${e.name}</h4>
+          <span class="grp" style="background:${GROUPS[e.group].color}">${GROUPS[e.group].label}</span>
+          <div class="meta"><span>${emgLabel(e)}</span><span>·</span><span>${e.sets}</span><span>·</span><span class="pubmed">PubMed</span></div>
+        </div>
+        <div class="save-btn ${isSaved?'on':''}" data-save="${e.id}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="${isSaved?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </div>`;
+  }).join('');
+  list.querySelectorAll('.ex-row').forEach(r=>{
+    r.addEventListener('click', ev=>{
+      if(ev.target.closest('[data-save]')) return;
+      openDetail(r.dataset.ex);
+    });
+  });
+  list.querySelectorAll('[data-save]').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      toggleSave(b.dataset.save);
+      renderResults();
+    });
+  });
+}
+
+function toggleSave(id){
+  const i = state.saved.indexOf(id);
+  if(i<0){ state.saved.push(id); toast('Saved to profile'); }
+  else { state.saved.splice(i,1); toast('Removed from saved'); }
+  save();
+}
+
+// ----- detail -----
+let detailExId = 'db-bench';
+function openDetail(id){
+  detailExId = id;
+  const e = EXERCISES.find(x=>x.id===id); if(!e) return;
+  document.getElementById('d-name').textContent = e.name;
+  document.getElementById('d-tier').textContent = e.tier;
+  document.getElementById('d-eq').textContent = e.eq;
+  document.getElementById('d-grp').textContent = GROUPS[e.group].label;
+  document.getElementById('d-emg').textContent = e.emg==null ? 'Fix' : e.emg+'%';
+  document.getElementById('d-emg-label').textContent = e.emg==null ? 'Corrective' : 'EMG peak';
+  const note = document.getElementById('d-gif-note');
+  if(e.gifNote){ note.innerHTML = `<b>About this animation:</b> ${e.gifNote}`; note.hidden = false; }
+  else { note.hidden = true; note.textContent = ''; }
+  document.getElementById('d-sets').textContent = e.sets;
+  document.getElementById('d-rest').textContent = e.rest;
+  document.getElementById('d-sci').textContent = e.sci;
+  document.getElementById('d-easy').textContent = e.easy;
+  document.getElementById('d-how').textContent = e.how;
+  document.getElementById('d-cite-title').textContent = e.citeT;
+  document.getElementById('d-cite-detail').innerHTML = e.citeD;
+  const citeLink = document.getElementById('d-cite-link');
+  // The anchor carries an inline display:inline-block, which outranks the UA [hidden] rule,
+  // so toggle display directly rather than relying on the hidden attribute.
+  if(e.pmid){ citeLink.href = `https://pubmed.ncbi.nlm.nih.gov/${e.pmid}/`; citeLink.style.display = 'inline-block'; }
+  else { citeLink.removeAttribute('href'); citeLink.style.display = 'none'; }
+  const hero = document.getElementById('hero-gif');
+  if(e.gif){
+    hero.style.backgroundImage = `url('https://cdn.jefit.com/assets/img/exercises/gifs/${e.gif}.gif')`;
+    hero.style.background = '';
+    hero.style.backgroundImage = `url('https://cdn.jefit.com/assets/img/exercises/gifs/${e.gif}.gif')`;
+    hero.style.backgroundSize = 'cover';
+    hero.style.backgroundPosition = 'center';
+  } else {
+    hero.style.background = `linear-gradient(135deg,${getCSSVar(GROUPS[e.group].color)},#1a1d28)`;
+  }
+  // save btn state
+  const sBtn = document.getElementById('d-save-btn');
+  sBtn.textContent = state.saved.includes(e.id) ? '♥ Saved' : '♡ Save';
+  go('detail');
+}
+document.getElementById('d-save-btn').addEventListener('click', ()=>{
+  toggleSave(detailExId);
+  document.getElementById('d-save-btn').textContent = state.saved.includes(detailExId) ? '♥ Saved' : '♡ Save';
+});
+document.getElementById('d-add-btn').addEventListener('click', ()=>{
+  openPicker(state.planDay, detailExId);
+});
+
+// ----- profile -----
+function renderProfile(){
+  const m = state.height/100;
+  const bmi = (state.weight/(m*m)).toFixed(1);
+  document.getElementById('prof-stats').textContent = `${state.height} cm · ${state.weight} kg · ${state.goal==='muscle-group'?'targeted':state.goal}`;
+  document.getElementById('ps-bmi').textContent = bmi;
+  document.getElementById('ps-saved').textContent = state.saved.length;
+  const planCount = Object.values(state.plan).reduce((a,d)=>a+d.length,0);
+  document.getElementById('ps-plan').textContent = planCount;
+
+  // plan summary
+  const ps = document.getElementById('plan-summary');
+  if(planCount===0){
+    ps.innerHTML = `<div class="empty"><p>No exercises in your plan yet.</p><button class="btn primary" data-go="plan" style="max-width:180px;margin:0 auto">Build my plan</button></div>`;
+  } else {
+    const goalLabels = {muscle:'Hypertrophy',fat:'Fat loss',recomp:'Recomp',['muscle-group']:'Targeted'};
+    ps.innerHTML = `<div class="plan-card featured" data-go="plan">
+      <h4>My weekly plan</h4>
+      <div class="ptags">${Object.entries(state.plan).filter(([d,ex])=>ex.length).map(([d])=>`<span class="ptag" style="background:var(--accent2);color:#0a0b0f">${d}</span>`).join('')}</div>
+      <div class="meta"><span>${planCount} exercises</span><span>${goalLabels[state.goal]}</span></div>
+    </div>`;
+  }
+
+  // saved list
+  const sl = document.getElementById('saved-list');
+  if(state.saved.length===0){
+    sl.innerHTML = `<div class="empty"><p>Tap the bookmark on any exercise to save it here.</p></div>`;
+  } else {
+    sl.innerHTML = state.saved.map(id=>{
+      const e = EXERCISES.find(x=>x.id===id); if(!e) return '';
+      const gifBg = e.gif ? `background-image:url('https://cdn.jefit.com/assets/img/exercises/gifs/${e.gif}.gif')` : `background:${getCSSVar(GROUPS[e.group].color)}`;
+      return `<div class="ex-row" data-ex="${e.id}">
+        <div class="ex-thumb" style="${gifBg}"></div>
+        <div class="ex-info">
+          <h4>${e.name}</h4>
+          <span class="grp" style="background:${GROUPS[e.group].color}">${GROUPS[e.group].label}</span>
+          <div class="meta"><span>${e.sets}</span><span>·</span><span>${emgLabel(e)}</span></div>
+        </div>
+        <div class="save-btn on" data-save="${e.id}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </div>`;
+    }).join('');
+    sl.style.padding = '0 18px';
+    sl.querySelectorAll('.ex-row').forEach(r=>r.addEventListener('click',ev=>{
+      if(ev.target.closest('[data-save]')) return;
+      openDetail(r.dataset.ex);
+    }));
+    sl.querySelectorAll('[data-save]').forEach(b=>b.addEventListener('click',ev=>{
+      ev.stopPropagation(); toggleSave(b.dataset.save); renderProfile();
+    }));
+  }
+}
+
+// ----- plan builder -----
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function renderPlan(){
+  const tabs = document.getElementById('day-tabs');
+  tabs.innerHTML = DAYS.map(d=>`<div class="day-tab ${state.planDay===d?'on':''} ${state.plan[d].length?'has-ex':''}" data-d="${d}">${d}</div>`).join('');
+  tabs.querySelectorAll('.day-tab').forEach(t=>{
+    t.addEventListener('click', ()=>{ state.planDay = t.dataset.d; save(); renderPlan(); });
+  });
+
+  const day = state.planDay;
+  const exs = state.plan[day];
+  const c = document.getElementById('plan-day-content');
+  const totalMin = exs.reduce((acc,id)=>{
+    const e = EXERCISES.find(x=>x.id===id); return acc + (e?6:0);
+  },0);
+  let html = `<div style="padding:8px 18px 4px;font-size:11px;color:var(--ink3);letter-spacing:.4px;text-transform:uppercase">${day} · ${exs.length} exercise${exs.length===1?'':'s'}${exs.length?` · ~${totalMin} min`:''}</div>`;
+  if(exs.length===0){
+    html += `<div class="day-empty">Rest day or empty<br/><span style="opacity:.6">Tap below to add exercises from your saved list or browse all.</span></div>`;
+  } else {
+    exs.forEach(id=>{
+      const e = EXERCISES.find(x=>x.id===id); if(!e) return;
+      const gifBg = e.gif ? `background-image:url('https://cdn.jefit.com/assets/img/exercises/gifs/${e.gif}.gif')` : `background:${getCSSVar(GROUPS[e.group].color)}`;
+      html += `<div class="plan-ex">
+        <div class="pthumb" style="${gifBg}"></div>
+        <div class="pinfo">
+          <h5>${e.name}</h5>
+          <div class="pmeta">${e.sets} · ${GROUPS[e.group].label} · ${e.eq}</div>
+        </div>
+        <button class="rm" data-rm="${e.id}">Remove</button>
+      </div>`;
+    });
+  }
+  html += `<div class="add-row"><button class="add-btn" id="add-to-day"><span style="font-size:18px;line-height:1">+</span> Add exercise to ${day}</button></div>`;
+  c.innerHTML = html;
+  c.querySelectorAll('[data-rm]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      state.plan[day] = state.plan[day].filter(x=>x!==b.dataset.rm);
+      save(); renderPlan();
+    });
+  });
+  document.getElementById('add-to-day').addEventListener('click', ()=>openPicker(day));
+}
+
+// ----- picker -----
+let pickerFilter = 'all';
+function openPicker(day, preselectId){
+  document.getElementById('picker-day').textContent = day;
+  document.getElementById('picker').classList.add('open');
+  pickerFilter = 'all';
+  renderPicker(day);
+}
+document.getElementById('picker-close').addEventListener('click', ()=>{
+  document.getElementById('picker').classList.remove('open');
+});
+document.getElementById('picker').addEventListener('click', ev=>{
+  if(ev.target.id==='picker') document.getElementById('picker').classList.remove('open');
+});
+function renderPicker(day){
+  const fr = document.getElementById('picker-filter');
+  const groups = ['all', ...Object.keys(GROUPS)];
+  fr.innerHTML = groups.map(g=>{
+    const lbl = g==='all' ? 'All' : GROUPS[g].label;
+    return `<div class="fchip ${pickerFilter===g?'on':''}" data-pf="${g}">${lbl}</div>`;
+  }).join('');
+  fr.querySelectorAll('[data-pf]').forEach(c=>c.addEventListener('click',()=>{
+    pickerFilter = c.dataset.pf; renderPicker(day);
+  }));
+  const list = document.getElementById('picker-list');
+  // suggest saved first, then all
+  // Copy before sorting: the 'all' branch used to alias EXERCISES itself, so opening the
+  // picker permanently reordered the global array, and recommendedFor's default branch
+  // picks per group by authored order (slice(0,2)).
+  const filtered = (pickerFilter==='all' ? [...EXERCISES] : EXERCISES.filter(e=>e.group===pickerFilter));
+  const sortKey = id => state.saved.includes(id) ? 0 : 1;
+  filtered.sort((a,b)=>sortKey(a.id)-sortKey(b.id) || emgScore(b)-emgScore(a));
+  list.innerHTML = filtered.map(e=>{
+    const inDay = state.plan[day].includes(e.id);
+    const isSaved = state.saved.includes(e.id);
+    const gifBg = e.gif ? `background-image:url('https://cdn.jefit.com/assets/img/exercises/gifs/${e.gif}.gif')` : `background:${getCSSVar(GROUPS[e.group].color)}`;
+    return `<div class="pick-row" data-add="${e.id}">
+      <div class="pthumb" style="${gifBg}"></div>
+      <div class="pinfo" style="flex:1">
+        <h5>${e.name} ${isSaved?'<span style="color:var(--accent);font-size:11px">·♥</span>':''}</h5>
+        <div class="gm">${GROUPS[e.group].label} · ${emgLabel(e)}</div>
+      </div>
+      <button class="btn ${inDay?'ghost':'primary'}" style="padding:6px 12px;font-size:12px;flex:none" ${inDay?'disabled':''}>${inDay?'Added':'Add'}</button>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.pick-row').forEach(r=>{
+    r.addEventListener('click', ()=>{
+      const id = r.dataset.add;
+      if(state.plan[day].includes(id)) return;
+      state.plan[day].push(id); save(); toast(`Added to ${day}`);
+      document.getElementById('picker').classList.remove('open');
+      renderPlan();
+    });
+  });
+}
+
+// ----- week -----
+// Defaults to today's session when today is a gym day, otherwise the next one.
+let weekDay = (() => {
+  const t = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+  if(PROGRAM_DAYS.includes(t)) return t;
+  return PROGRAM_DAYS.find(d => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(d)
+    > ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(t)) || 'Tue';
+})();
+
+function renderWeek(){
+  const today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+  const tabs = document.getElementById('week-tabs');
+  tabs.innerHTML = PROGRAM_DAYS.map(d=>{
+    const p = PROGRAM[d];
+    return `<div class="day-tab ${weekDay===d?'on':''}" data-wd="${d}">${d}${d===today?' ·':''} <span style="opacity:.6">${p.key}</span></div>`;
+  }).join('');
+  tabs.querySelectorAll('[data-wd]').forEach(t=>t.addEventListener('click',()=>{
+    weekDay = t.dataset.wd; renderWeek();
+  }));
+
+  const p = PROGRAM[weekDay];
+  const main = p.items.filter(i=>!i.pre);
+  const prep = p.items.filter(i=>i.pre);
+  const isPress = id => ['db-bench','incline-db','pushup','ohp','oh-tri','pushdown','close-bench'].includes(id);
+  const isPull  = id => ['seal-row','pullup','lat-pd','db-row','pos-face-pull','prone-y','rear-delt-row','ext-rotation','hammer','ez-curl','db-curl'].includes(id);
+  const pulls = main.filter(i=>isPull(i.id)).length, presses = main.filter(i=>isPress(i.id)).length;
+
+  const row = (i,n) => {
+    const e = EXERCISES.find(x=>x.id===i.id); if(!e) return '';
+    const bg = e.gif
+      ? `background-image:url('https://cdn.jefit.com/assets/img/exercises/gifs/${e.gif}.gif')`
+      : `background:linear-gradient(135deg,${getCSSVar(GROUPS[e.group].color)},#1a1d28)`;
+    return `<div class="wk-row ${i.pre?'pre':''}" data-ex="${e.id}">
+      <div class="wn">${i.pre?'·':n}</div>
+      <div class="wthumb" style="${bg}"></div>
+      <div class="wi">
+        <h5>${e.name}</h5>
+        <div class="wd">${GROUPS[e.group].label}${i.rest?' · rest '+i.rest:''}</div>
+      </div>
+      <div class="wdose">${i.dose}</div>
+    </div>`;
+  };
+
+  let n = 0;
+  document.getElementById('week-content').innerHTML =
+    `<div class="wk-head">
+       <h4>${p.title} <span style="color:var(--ink3);font-weight:500">· ${weekDay}</span></h4>
+       <div class="wsub">${p.sub}</div>
+       <div class="wmeta">${main.length} exercises · ${pulls} pulling vs ${presses} pressing · prep ${prep.length} items</div>
+     </div>
+     <div class="wk-sec">PREP</div>${prep.map(i=>row(i,0)).join('')}
+     <div class="wk-sec">SESSION</div>${main.map(i=>row(i,++n)).join('')}`;
+
+  document.getElementById('week-content').querySelectorAll('.wk-row').forEach(r=>{
+    r.addEventListener('click', ()=>{ openDetail(r.dataset.ex); go('detail'); });
+  });
+  document.getElementById('week-sub').textContent = `Tue ${PROGRAM.Tue.key} · Thu ${PROGRAM.Thu.key} · Sat ${PROGRAM.Sat.key}`;
+}
+
+// ----- toast -----
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// ----- helpers -----
+function getCSSVar(v){
+  if(!v || !v.startsWith('var(')) return v;
+  const name = v.slice(4,-1);
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// reset
+document.getElementById('reset-btn').addEventListener('click', ()=>{
+  if(confirm('Reset all data?')){
+    localStorage.removeItem(KEY);
+    state = {...defaultState, plan:{Mon:[],Tue:[],Wed:[],Thu:[],Fri:[],Sat:[],Sun:[]}, saved:[], muscleGroups:['chest','back']};
+    go('welcome');
+  }
+});
+
+// initial sync
+syncStats(); syncGoal();
+
+// register service worker for offline + installable PWA
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
