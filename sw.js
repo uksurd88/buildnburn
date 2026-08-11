@@ -1,6 +1,6 @@
 // Bump on every content change: the fetch handler is cache-first for same-origin assets,
 // so an installed PWA keeps serving the old index.html until this name changes.
-const CACHE = 'buildnburn-v4';
+const CACHE = 'buildnburn-v5';
 const ASSETS = [
   './',
   './index.html',
